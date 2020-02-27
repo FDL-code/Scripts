@@ -17,7 +17,8 @@ REM Menu
 @echo 2 - Configuration d'interfaces
 @echo 3 - Configuration de vlan
 @echo 4 - Configuration de trunk
-@echo 5 - Quitter
+@echo 5 - Configuration OSPF
+@echo 6 - Quitter
 @echo ++++++++++++++++++++++++++++++++++++++++++++++++++++++
 @echo.
 set /p selection= Quelle tache souhaitez vous effectuer ?
@@ -25,7 +26,8 @@ if /I "%selection%"=="1" (goto question_config)
 if /I "%selection%"=="2" (goto question_interface)
 if /I "%selection%"=="3" (goto demande_vlan)
 if /I "%selection%"=="4" (goto demande_trunk)
-if /I "%selection%"=="5" (goto fin) else (goto question_menu)
+if /I "%selection%"=="5" (goto demande_ospf)
+if /I "%selection%"=="6" (goto fin) else (goto question_menu)
 
 REM ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 :question_config
@@ -228,7 +230,7 @@ if /I "%demande_trunk%"=="n" (goto question_menu)
 :oui_trunk
 REM questions trunk
 set /p numero_int_trunk=Quel est l'interface affecte au trunk (ex : g0/0, f0/0, s0/0/0) ?
-set /p runk_vlan=Quel est le numero du vlan affecte au trunk ?
+set /p trunk_vlan=Quel est le numero du vlan affecte au trunk ?
 @echo interface %runk_vlan%  >> %nomfichier%.txt
 @echo switchport mode trunk  >> %nomfichier%.txt
 @echo switchport trunk native vlan %trunk_vlan%  >> %nomfichier%.txt
@@ -245,7 +247,45 @@ if /I "%demande_autre_trunk%"=="non" (goto demande_trunk)
 if /I "%demande_autre_trunk%"=="no" (goto demande_trunk)
 if /I "%demande_autre_trunk%"=="n" (goto demande_trunk)
 
- 
+
+REM ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+:demande_ospf
+REM demande configuration ospf
+set /p id_ospf=Quel est l'ID du routeur OSPF ?
+@echo router ospf 1 >> %nomfichier%.txt
+@echo router-id %id_ospf% >> %nomfichier%.txt
+
+:reseau_ospf
+set /p reseau_ospf=Quel est le reseau connecté au routeur (ex : 192.168.0.0 0.0.0.255) ?
+@echo network %reseau_ospf% >> %nomfichier%.txt
+set /p demande_autre_reseau_ospf= Faut-il configurer un autre reseau dans le routeur OSPF (oui/non) ?
+if /I "%demande_autre_reseau_ospf%"=="oui" (goto reseau_ospf)
+if /I "%demande_autre_reseau_ospf%"=="o" (goto reseau_ospf)
+if /I "%demande_autre_reseau_ospf%"=="y" (goto reseau_ospf)
+if /I "%demande_autre_reseau_ospf%"=="yes" (goto reseau_ospf)
+if /I "%demande_autre_reseau_ospf%"=="non" (goto question_passive_ospf)
+if /I "%demande_autre_reseau_ospf%"=="no" (goto question_passive_ospf)
+if /I "%demande_autre_reseau_ospf%"=="n" (goto question_passive_ospf)
+
+:question_passive_ospf
+set/p demande_autre_passive_ospf=Faut-t-il configurer une interface passive sur le routeur OSPF ?
+if /I "%demande_autre_passive_ospf%"=="oui" (goto int_passive_ospf)
+if /I "%demande_autre_passive_ospf%"=="o" (goto int_passive_ospf)
+if /I "%demande_autre_passive_ospf%"=="y" (goto int_passive_ospf)
+if /I "%demande_autre_passive_ospf%"=="yes" (goto int_passive_ospf)
+if /I "%demande_autre_passive_ospf%"=="non" (goto exit)
+if /I "%demande_autre_passive_ospf%"=="no" (goto exit)
+if /I "%demande_autre_passive_ospf%"=="n" (goto exit)
+
+:int_passive_ospf
+set /p num_int_pass_ospf=Quel est l'interface passive sur le routeur OSPF (ex:  g0/0, f0/0, s0/0/0) ?
+@echo passive-interface %num_int_pass_ospf% >> %nomfichier%.txt
+goto question_passive_ospf
+
+:exit
+@echo exit >> %nomfichier%.txt 
+goto question_menu
 
 REM --------------------------------------------------------------------
 
